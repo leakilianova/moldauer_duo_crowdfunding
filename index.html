@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moldauer Duo - Cesta ke katedrále</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Playfair+Display:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Libre+Baskerville', serif;
+            background-color: #fcf9f2;
+            color: #2c1810;
+        }
+        h1, h2, h3, h4 {
+            font-family: 'Playfair Display', serif;
+        }
+        .progress-bar {
+            transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-reward {
+            border: 1px solid #e2d1b3;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        .card-reward:hover {
+            transform: translateY(-5px);
+            border-color: #c5a059;
+            box-shadow: 0 12px 20px -5px rgba(197, 160, 89, 0.2);
+        }
+        .bg-antique {
+            background-color: #f7f0e6;
+        }
+        .btn-gold {
+            background: linear-gradient(135deg, #d4af37 0%, #c5a059 100%);
+            color: white;
+            transition: all 0.3s;
+        }
+        .btn-gold:hover {
+            filter: brightness(1.1);
+            transform: scale(1.02);
+        }
+        .quiz-option {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e2d1b3;
+        }
+        .quiz-option:hover {
+            border-color: #c5a059;
+            background-color: #fff;
+            transform: translateX(5px);
+        }
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-12">
+    <div id="app" class="max-w-6xl mx-auto">
+        <!-- Hlavička projektu -->
+        <header class="text-center mb-12 border-b-2 border-double border-stone-300 pb-8">
+            <h1 class="text-5xl md:text-6xl font-bold mb-4 tracking-tight">Moldauer Duo</h1>
+            <p class="text-xl italic text-stone-600 mb-6">Rozezvučme společně klenby katedrály svatého Víta</p>
+            <div class="inline-block bg-white px-8 py-4 rounded-full border border-stone-200 shadow-sm">
+                <p class="text-sm uppercase tracking-[0.2em] font-bold text-amber-800">Crowdfundingová kampaň 2026</p>
+            </div>
+        </header>
+
+        <!-- Průvodce výběrem -->
+        <section id="quiz-section" class="mb-16 bg-antique p-8 md:p-12 rounded-3xl border border-stone-200 shadow-xl relative overflow-hidden">
+            <div id="quiz-intro" class="text-center">
+                <h3 class="text-3xl font-bold mb-4">Jaký příběh s námi chcete psát?</h3>
+                <p class="text-lg text-stone-700 mb-8 max-w-2xl mx-auto">Vyberte si cestu, která nejlépe rezonuje s vaším vztahem k hudbě a umění. My se postaráme o zbytek.</p>
+                <button onclick="startQuiz()" class="btn-gold px-12 py-4 rounded-full font-bold shadow-lg uppercase tracking-widest text-sm">Vstoupit do průvodce</button>
+            </div>
+
+            <div id="quiz-container" class="hidden fade-in">
+                <div class="flex justify-between items-center mb-8">
+                    <span id="quiz-progress" class="text-xs font-bold text-amber-800 uppercase tracking-widest bg-white px-3 py-1 rounded-full border border-amber-200">Krok 1 ze 2</span>
+                    <button onclick="resetQuiz()" class="text-xs text-stone-400 hover:text-stone-700 uppercase font-bold tracking-widest">Zpět</button>
+                </div>
+                <h4 id="quiz-question" class="text-2xl md:text-3xl font-bold mb-8 text-center text-stone-800"></h4>
+                <div id="quiz-options" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+                    <!-- Možnosti -->
+                </div>
+            </div>
+
+            <div id="quiz-result" class="hidden fade-in">
+                <div class="text-center mb-10">
+                    <h4 class="text-3xl font-bold mb-2">Vaše ideální mecenášská cesta</h4>
+                    <p id="result-text" class="text-stone-600 italic">Tyto odměny nejlépe odpovídají vašemu výběru:</p>
+                </div>
+                <div id="recommended-rewards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Doporučené karty -->
+                </div>
+                <div class="text-center mt-12">
+                    <button onclick="resetQuiz()" class="text-stone-500 underline text-sm hover:text-stone-800 font-medium">Zkusit průvodce znovu</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Finanční ukazatel -->
+        <section class="mb-16 bg-white p-8 rounded-2xl shadow-lg border border-stone-100">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                <div>
+                    <h3 class="text-sm uppercase tracking-widest font-bold text-stone-400">Aktuální stav sbírky</h3>
+                    <p class="text-4xl font-bold text-stone-800"><span id="current-amount">0</span> <span class="text-2xl font-normal text-stone-500">/ 90 000 Kč</span></p>
+                </div>
+                <div class="text-right">
+                    <p id="backer-count" class="text-amber-700 font-bold text-lg italic">Staňte se naším prvním patronem</p>
+                </div>
+            </div>
+            <div class="w-full bg-stone-100 rounded-full h-10 overflow-hidden border-4 border-white shadow-inner">
+                <div id="progress-bar" class="progress-bar bg-amber-600 h-full w-0 flex items-center justify-end pr-4 text-white text-sm font-bold shadow-lg">0%</div>
+            </div>
+        </section>
+
+        <!-- Seznam všech odměn -->
+        <div class="text-center mb-10">
+            <h3 class="text-4xl font-bold mb-2">Katalog darů a uznání</h3>
+            <div class="h-1 w-24 bg-amber-600 mx-auto rounded-full"></div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="rewards-container">
+            <!-- Všechny odměny -->
+        </div>
+
+        <!-- Modální okno po daru -->
+        <div id="modal" class="fixed inset-0 bg-stone-900/80 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+            <div class="bg-white p-10 rounded-2xl max-w-md w-full text-center shadow-2xl border-t-8 border-amber-600">
+                <div class="text-6xl mb-4">🙏</div>
+                <h2 class="text-3xl font-bold mb-4 italic">Děkujeme za vaši štědrost</h2>
+                <div id="modal-content" class="mb-8 text-stone-700 leading-relaxed text-lg"></div>
+                <button onclick="closeModal()" class="btn-gold w-full py-4 rounded-xl font-bold shadow-md uppercase tracking-widest">Pokračovat v cestě</button>
+            </div>
+        </div>
+
+        <!-- Oslava cíle -->
+        <div id="win-message" class="hidden mt-16 p-12 bg-amber-50 border-2 border-amber-200 rounded-3xl text-center fade-in shadow-2xl">
+            <h2 class="text-5xl font-bold text-amber-900 mb-6">Cíl byl naplněn!</h2>
+            <p class="text-xl text-stone-700 mb-8">Díky vám se katedrála sv. Víta rozezní barokními tóny Moldauer Dua. Budeme vás informovat o termínu koncertu.</p>
+            <button onclick="resetGame()" class="text-amber-700 underline font-bold uppercase tracking-[0.2em] text-xs">Resetovat simulaci sbírky</button>
+        </div>
+    </div>
+
+    <script>
+        const GOAL = 60000;
+        let currentAmount = 0;
+        let backers = 0;
+
+        // Definice odměn dle zadání
+        const rewards = [
+            // ZÁŽITKY
+            { id: 1, title: "Digitální stopa", price: 150, category: "zazitek", tier: "low", icon: "📱", description: "Osobní video-poděkování a exkluzivní nahrávka přímo do vašeho e-mailu." },
+            { id: 2, title: "Vstupenka do katedrály", price: 700, category: "zazitek", tier: "low", icon: "🎟️", description: "Vstupenka na náš vysněný koncert v srdci Pražského hradu." },
+            { id: 3, title: "Workshop loutny", price: 2500, category: "zazitek", tier: "mid", icon: "🎸", description: "60 minutový vhled do tajů historické loutny s J. Mackem." },
+            { id: 4, title: "Workshop houslí", price: 2500, category: "zazitek", tier: "mid", icon: "🎻", description: "Individuální lekce techniky a interpretace s L. Kilianovou." },
+            { id: 5, title: "V.I.P. Vstupenky", price: 6500, category: "zazitek", tier: "high", icon: "👑", description: "Dvě místa v čestné řadě, osobní setkání po koncertě a sklenka vína." },
+            
+            // UŽITEČNÉ
+            { id: 6, title: "Záložka do knihy", price: 350, category: "prakticke", tier: "low", icon: "🔖", description: "Ručně vázaná záložka s dobovým ornamentem pro vaše četby." },
+            { id: 7, title: "SD disk s hudbou", price: 500, category: "prakticke", tier: "low", icon: "💾", description: "Kompletní digitální album ve vysoké kvalitě na stylovém nosiči." },
+            { id: 8, title: "Látkový obal na noty", price: 1400, category: "prakticke", tier: "mid", icon: "💼", description: "Pevný, ručně šitý obal pro bezpečné uchování vašich partitur." },
+            { id: 9, title: "Taška 'Mecenáš'", price: 1800, category: "prakticke", tier: "mid", icon: "🛍️", description: "Elegantní plátěná taška s vysokou gramáží a logem dua." },
+            
+            // SBÍRKA
+            { id: 10, title: "Koncertní booklet", price: 350, category: "sberatelske", tier: "low", icon: "📖", description: "Rozšířený tištěný průvodce historií skladeb a naším příběhem." },
+            { id: 11, title: "Grafický list", price: 850, category: "sberatelske", tier: "low", icon: "🎨", description: "Autorská grafika na kvalitním papíře, signovaná umělci." },
+            { id: 12, title: "Sada s věnováním", price: 2500, category: "sberatelske", tier: "mid", icon: "✨", description: "Komplet bookletu, grafiky a záložky v dárkové krabičce s věnováním." },
+            { id: 13, title: "Adopce skladby", price: 12000, category: "sberatelske", tier: "high", icon: "🎼", description: "Staňte se patronem skladby. Vaše jméno bude navždy spojeno s tímto dílem." },
+            
+            // PATRON
+            { id: 14, title: "Soukromý koncert", price: 25000, category: "patron", tier: "high", icon: "🕯️", description: "Exkluzivní vystoupení u vás doma nebo ve vaší firmě pro vaše hosty." }
+        ];
+
+        // Průvodce
+        const quizData = [
+            {
+                question: "Čím byste si chtěli udělat největší radost?",
+                options: [
+                    { text: "Chci pouze finančně přispět (bez dárku)", tag: "pure_donation" },
+                    { text: "Zážitky a osobní kontakt s hudbou", tag: "zazitek" },
+                    { text: "Užitečné věci pro denní život", tag: "prakticke" },
+                    { text: "Krásné věci do sbírky a umění", tag: "sberatelske" },
+                    { text: "Chci se stát hrdým patronem projektu", tag: "patron" }
+                ]
+            },
+            {
+                question: "V jaké výši byste nás chtěli podpořit?",
+                options: [
+                    { text: "Drobný příspěvek (do 1 000 Kč)", tier: "low" },
+                    { text: "Hodnotný dar (1 000 – 5 000 Kč)", tier: "mid" },
+                    { text: "Významný patronát (nad 5 000 Kč)", tier: "high" }
+                ]
+            }
+        ];
+
+        let step = 0;
+        let selectedCategory = "";
+        let selectedTier = "";
+
+        function startQuiz() {
+            document.getElementById('quiz-intro').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            step = 0;
+            renderStep();
+        }
+
+        function renderStep() {
+            const current = quizData[step];
+            document.getElementById('quiz-progress').innerText = `Krok ${step + 1} ze 2`;
+            document.getElementById('quiz-question').innerText = current.question;
+            
+            const optionsDiv = document.getElementById('quiz-options');
+            optionsDiv.innerHTML = current.options.map((opt, idx) => `
+                <div onclick="selectOption(${idx})" class="quiz-option bg-white p-6 rounded-2xl text-center font-bold text-stone-700 shadow-sm">
+                    ${opt.text}
+                </div>
+            `).join('');
+        }
+
+        function selectOption(idx) {
+            const opt = quizData[step].options[idx];
+            
+            // Pokud vybere PURE DONATION rovnou v prvním kroku
+            if (step === 0 && opt.tag === "pure_donation") {
+                selectedCategory = "pure_donation";
+                showResult();
+                return;
+            }
+
+            // Pokud vybere PATRON v prvním kroku, skočíme rovnou na výsledek pro patrony
+            if (step === 0 && opt.tag === "patron") {
+                selectedCategory = "patron";
+                selectedTier = "high";
+                showResult();
+                return;
+            }
+
+            if (step === 0) {
+                selectedCategory = opt.tag;
+                step++;
+                renderStep();
+            } else {
+                selectedTier = opt.tier;
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-result').classList.remove('hidden');
+
+            const container = document.getElementById('recommended-rewards');
+            const resultText = document.getElementById('result-text');
+
+            if (selectedCategory === "pure_donation") {
+                resultText.innerText = "Děkujeme, že si přejete darovat bez nároku na odměnu. Vaše gesto nás dojímá.";
+                container.innerHTML = `
+                    <div class="col-span-full card-reward p-10 rounded-2xl flex flex-col items-center bg-stone-50 border-amber-600 border-2">
+                        <span class="text-6xl mb-4 text-amber-600">🏛️</span>
+                        <h4 class="text-2xl font-bold mb-4">Dobrovolný dar</h4>
+                        <p class="text-stone-600 mb-6 max-w-sm mx-auto">Vložte libovolnou částku v korunách, kterou chcete podpořit realizaci koncertu v katedrále.</p>
+                        <div class="flex gap-2 w-full max-w-xs mb-4">
+                            <input id="custom-donation" type="number" value="100" min="1" class="w-full px-4 py-3 rounded-xl border border-stone-300 font-bold text-center text-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                            <span class="flex items-center font-bold text-stone-500 pr-2">Kč</span>
+                        </div>
+                        <button onclick="handleCustomDonation()" class="btn-gold w-full max-w-xs py-4 rounded-xl font-bold uppercase tracking-widest">Přispět</button>
+                    </div>
+                `;
+                return;
+            }
+
+            let filtered = [];
+            if (selectedCategory === "patron") {
+                filtered = rewards.filter(r => [5, 13, 14].includes(r.id));
+                resultText.innerText = "Jako patron se stáváte pilířem našeho projektu. Zde jsou možnosti vašeho zapojení:";
+            } else {
+                filtered = rewards.filter(r => r.category === selectedCategory && r.tier === selectedTier);
+                if (selectedTier === "high" && filtered.length === 0) {
+                    filtered = rewards.filter(r => r.id === 5 || (r.category === selectedCategory && r.tier === "high"));
+                }
+                resultText.innerText = "Tyto odměny nejlépe odpovídají vašemu výběru:";
+            }
+
+            container.innerHTML = filtered.map(r => renderRewardCard(r, true)).join('');
+        }
+
+        function handleCustomDonation() {
+            const amount = parseInt(document.getElementById('custom-donation').value) || 0;
+            if (amount > 0) {
+                contribute(amount, "Čistý dar bez odměny");
+            }
+        }
+
+        function renderRewardCard(r, isRecommended = false) {
+            return `
+                <div class="card-reward p-6 rounded-2xl flex flex-col justify-between ${isRecommended ? 'border-amber-400 bg-amber-50/30' : ''}">
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-4xl">${r.icon}</span>
+                            <span class="text-amber-800 font-bold bg-white px-3 py-1 rounded-full border border-amber-100 text-sm shadow-sm">${r.price.toLocaleString()} Kč</span>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2 text-stone-800">${r.title}</h4>
+                        <p class="text-stone-600 text-sm leading-relaxed mb-6">${r.description}</p>
+                    </div>
+                    <button onclick="contribute(${r.price}, '${r.title}')" class="btn-gold w-full py-3 rounded-xl font-bold uppercase tracking-widest text-xs">Zvolit tento dar</button>
+                </div>
+            `;
+        }
+
+        function initAllRewards() {
+            const container = document.getElementById('rewards-container');
+            container.innerHTML = rewards.map(r => renderRewardCard(r)).join('');
+            updateUI();
+        }
+
+        function contribute(amount, title) {
+            currentAmount += amount;
+            backers += 1;
+            
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-content').innerHTML = `
+                <p>Právě jste věnovali <strong>${amount.toLocaleString()} Kč</strong> na realizaci koncertu.</p>
+                <p class="mt-4 font-bold text-amber-800 uppercase tracking-widest text-sm">Vaše volba: ${title}</p>
+            `;
+            modal.classList.remove('hidden');
+            updateUI();
+
+            if (currentAmount >= GOAL) {
+                document.getElementById('win-message').classList.remove('hidden');
+                document.getElementById('rewards-container').classList.add('opacity-30', 'pointer-events-none');
+                document.getElementById('quiz-section').classList.add('hidden');
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('current-amount').innerText = currentAmount.toLocaleString();
+            const backerText = backers === 0 ? "Staňte se naším prvním patronem" : 
+                             backers === 1 ? "1 mecenáš již podpořil tento sen" :
+                             `${backers} mecenášů již podpořilo tento sen`;
+            document.getElementById('backer-count').innerText = backerText;
+            
+            const percentage = Math.min((currentAmount / GOAL) * 100, 100);
+            const pb = document.getElementById('progress-bar');
+            pb.style.width = percentage + '%';
+            pb.innerText = Math.round(percentage) + '%';
+        }
+
+        function resetQuiz() {
+            document.getElementById('quiz-intro').classList.remove('hidden');
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('quiz-result').classList.add('hidden');
+            step = 0;
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+        }
+
+        function resetGame() {
+            currentAmount = 0;
+            backers = 0;
+            document.getElementById('win-message').classList.add('hidden');
+            document.getElementById('rewards-container').classList.remove('opacity-30', 'pointer-events-none');
+            document.getElementById('quiz-section').classList.remove('hidden');
+            updateUI();
+            resetQuiz();
+        }
+
+        window.onload = initAllRewards;
+    </script>
+</body>
+</html>
