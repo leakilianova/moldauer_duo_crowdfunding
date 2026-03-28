@@ -82,7 +82,12 @@
             <div id="quiz-container" class="hidden fade-in">
                 <div class="flex justify-between items-center mb-8">
                     <span id="quiz-progress" class="text-xs font-bold text-amber-800 uppercase tracking-widest bg-white px-3 py-1 rounded-full border border-amber-200">Krok 1 ze 2</span>
-                    <button onclick="resetQuiz()" class="text-xs text-stone-400 hover:text-stone-700 uppercase font-bold tracking-widest">Zpět</button>
+                    <button onclick="goBack()" class="flex items-center gap-1 text-xs text-stone-400 hover:text-stone-700 uppercase font-bold tracking-widest transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Zpět
+                    </button>
                 </div>
                 <h4 id="quiz-question" class="text-2xl md:text-3xl font-bold mb-8 text-center text-stone-800"></h4>
                 <div id="quiz-options" class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
@@ -91,6 +96,14 @@
             </div>
 
             <div id="quiz-result" class="hidden fade-in">
+                <div class="flex justify-start mb-6">
+                    <button onclick="goBack()" class="flex items-center gap-1 text-xs text-stone-400 hover:text-stone-700 uppercase font-bold tracking-widest transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Upravit výběr
+                    </button>
+                </div>
                 <div class="text-center mb-10">
                     <h4 class="text-3xl font-bold mb-2">Vaše ideální mecenášská cesta</h4>
                     <p id="result-text" class="text-stone-600 italic">Tyto odměny nejlépe odpovídají vašemu výběru:</p>
@@ -99,7 +112,7 @@
                     <!-- Doporučené karty -->
                 </div>
                 <div class="text-center mt-12">
-                    <button onclick="resetQuiz()" class="text-stone-500 underline text-sm hover:text-stone-800 font-medium">Zkusit průvodce znovu</button>
+                    <button onclick="resetQuiz()" class="text-stone-500 underline text-sm hover:text-stone-800 font-medium">Zpět na začátek</button>
                 </div>
             </div>
         </section>
@@ -109,7 +122,7 @@
             <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
                 <div>
                     <h3 class="text-sm uppercase tracking-widest font-bold text-stone-400">Aktuální stav sbírky</h3>
-                    <p class="text-4xl font-bold text-stone-800"><span id="current-amount">0</span> <span class="text-2xl font-normal text-stone-500">/ 90 000 Kč</span></p>
+                    <p class="text-4xl font-bold text-stone-800"><span id="current-amount">0</span> <span class="text-2xl font-normal text-stone-500">/ 60 000 Kč</span></p>
                 </div>
                 <div class="text-right">
                     <p id="backer-count" class="text-amber-700 font-bold text-lg italic">Staňte se naším prvním patronem</p>
@@ -194,8 +207,8 @@
                 question: "V jaké výši byste nás chtěli podpořit?",
                 options: [
                     { text: "Drobný příspěvek (do 1 000 Kč)", tier: "low" },
-                    { text: "Hodnotný dar (1 000 – 5 000 Kč)", tier: "mid" },
-                    { text: "Významný patronát (nad 5 000 Kč)", tier: "high" }
+                    { text: "Hodnotný dar (1 000 – 3 000 Kč)", tier: "mid" },
+                    { text: "Významný patronát (nad 3 000 Kč)", tier: "high" }
                 ]
             }
         ];
@@ -222,6 +235,30 @@
                     ${opt.text}
                 </div>
             `).join('');
+        }
+
+        function goBack() {
+            if (step === 0) {
+                // Pokud jsme na prvním kroku, vrátíme se na úvod
+                document.getElementById('quiz-container').classList.add('hidden');
+                document.getElementById('quiz-result').classList.add('hidden');
+                document.getElementById('quiz-intro').classList.remove('hidden');
+            } else if (document.getElementById('quiz-result').classList.contains('hidden')) {
+                // Pokud jsme v průběhu, jdeme o krok zpět
+                step--;
+                renderStep();
+            } else {
+                // Pokud jsme ve výsledcích, vrátíme se do posledního kroku kvízu
+                document.getElementById('quiz-result').classList.add('hidden');
+                document.getElementById('quiz-container').classList.remove('hidden');
+                // Pokud to byl patron nebo čistý dar, vracíme se na krok 0
+                if (selectedCategory === "pure_donation" || selectedCategory === "patron") {
+                    step = 0;
+                } else {
+                    step = 1;
+                }
+                renderStep();
+            }
         }
 
         function selectOption(idx) {
