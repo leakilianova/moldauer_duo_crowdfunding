@@ -180,6 +180,7 @@
             { id: 7, title: "SD disk s hudbou", price: 500, category: "prakticke", tier: "low", icon: "💾", description: "Kompletní digitální album ve vysoké kvalitě na stylovém nosiči." },
             { id: 8, title: "Látkový obal na noty", price: 1400, category: "prakticke", tier: "mid", icon: "💼", description: "Pevný, ručně šitý obal pro bezpečné uchování vašich partitur." },
             { id: 9, title: "Taška 'Mecenáš'", price: 1800, category: "prakticke", tier: "mid", icon: "🛍️", description: "Elegantní plátěná taška s vysokou gramáží a logem dua." },
+            { id: 15, title: "Vyřezávaný metronom", price: 8000, category: "prakticke", tier: "high", icon: "⏱️", description: "Luxusní dřevěný mechanický metronom s vypáleným logem dua. Mistrovský kousek pro vaši praxi." },
             
             // SBÍRKA
             { id: 10, title: "Koncertní booklet", price: 350, category: "sberatelske", tier: "low", icon: "📖", description: "Rozšířený tištěný průvodce historií skladeb a naším příběhem." },
@@ -239,19 +240,15 @@
 
         function goBack() {
             if (step === 0) {
-                // Pokud jsme na prvním kroku, vrátíme se na úvod
                 document.getElementById('quiz-container').classList.add('hidden');
                 document.getElementById('quiz-result').classList.add('hidden');
                 document.getElementById('quiz-intro').classList.remove('hidden');
             } else if (document.getElementById('quiz-result').classList.contains('hidden')) {
-                // Pokud jsme v průběhu, jdeme o krok zpět
                 step--;
                 renderStep();
             } else {
-                // Pokud jsme ve výsledcích, vrátíme se do posledního kroku kvízu
                 document.getElementById('quiz-result').classList.add('hidden');
                 document.getElementById('quiz-container').classList.remove('hidden');
-                // Pokud to byl patron nebo čistý dar, vracíme se na krok 0
                 if (selectedCategory === "pure_donation" || selectedCategory === "patron") {
                     step = 0;
                 } else {
@@ -264,14 +261,12 @@
         function selectOption(idx) {
             const opt = quizData[step].options[idx];
             
-            // Pokud vybere PURE DONATION rovnou v prvním kroku
             if (step === 0 && opt.tag === "pure_donation") {
                 selectedCategory = "pure_donation";
                 showResult();
                 return;
             }
 
-            // Pokud vybere PATRON v prvním kroku, skočíme rovnou na výsledek pro patrony
             if (step === 0 && opt.tag === "patron") {
                 selectedCategory = "patron";
                 selectedTier = "high";
@@ -315,11 +310,16 @@
 
             let filtered = [];
             if (selectedCategory === "patron") {
-                filtered = rewards.filter(r => [5, 13, 14].includes(r.id));
+                // Přidán metronom k dalším patronátním odměnám
+                filtered = rewards.filter(r => [5, 13, 14, 15].includes(r.id));
                 resultText.innerText = "Jako patron se stáváte pilířem našeho projektu. Zde jsou možnosti vašeho zapojení:";
             } else {
                 filtered = rewards.filter(r => r.category === selectedCategory && r.tier === selectedTier);
-                if (selectedTier === "high" && filtered.length === 0) {
+                
+                // Zvláštní logika pro "praktické" a "vysokou" cenu, kde chceme metronom
+                if (selectedCategory === "prakticke" && selectedTier === "high") {
+                    filtered = rewards.filter(r => r.id === 15);
+                } else if (selectedTier === "high" && filtered.length === 0) {
                     filtered = rewards.filter(r => r.id === 5 || (r.category === selectedCategory && r.tier === "high"));
                 }
                 resultText.innerText = "Tyto odměny nejlépe odpovídají vašemu výběru:";
